@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/user.route.js";
 import webhookRoutes from "./routes/webhook.route.js";
+import razorpayRoutes from "./routes/razorpay.route.js";
 
 const app= express();
 const PORT = process.env.PORT || 3000;
@@ -21,11 +22,12 @@ app.use(cookieParser());
 
 app.use('/api/auth',authRoutes);
 app.use('/api/webhook',webhookRoutes);
+app.use('/api/razorpay', razorpayRoutes);
 
 
 const startServer = async () => {
   try {
-    // await connectDB();
+    await connectDB();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
