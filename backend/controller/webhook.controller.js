@@ -1,4 +1,5 @@
 import { normalizeGitHubEvent } from "../services/normalizers/githubNormalizer.service.js";
+import { routeEvent } from "../services/router.service.js";
 import { transformGitHubEvent } from "../services/transformers/github.transformer.js";
 
 
@@ -9,10 +10,11 @@ export const webhook_github = async (req,res)=>{
         const normalizedEvent = normalizeGitHubEvent(req);
         // console.log("Normalized GitHub Event:", normalizedEvent);
         const transformedEvent = transformGitHubEvent(normalizedEvent);
-        console.log("Transformed GitHub Event:", transformedEvent);
+        // console.log("Transformed GitHub Event:", transformedEvent);
         if(!transformedEvent){
             return res.status(200).json({ message: "GitHub Webhook received but event was ignored based on transformation rules", normalizedEvent });
         }
+        routeEvent(transformedEvent);
         
         res.status(200).json({ message: "GitHub Webhook received successfully", transformedEvent });
     } catch (error) {

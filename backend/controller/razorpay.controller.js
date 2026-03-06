@@ -1,4 +1,5 @@
 import { normalizeRazorpayEvent } from "../services/normalizers/razorpayNormalizer.service.js";
+import { routeEvent } from "../services/router.service.js";
 import { transformRazorpayEvent } from "../services/transformers/razorpay.transformer.js";
 export const razorpay_webhook = (req, res) => {
     try {
@@ -10,7 +11,7 @@ export const razorpay_webhook = (req, res) => {
         if(!transformedEvent){
             return res.status(200).json({ message: "Razorpay Webhook received but event was ignored based on transformation rules", normalizedEvent });
         }
-        
+        routeEvent(transformedEvent);
         res.status(200).json({ message: "Razorpay Webhook received successfully", transformedEvent });
     } catch (error) {
         console.error("Error processing Razorpay Webhook:", error);
