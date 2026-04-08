@@ -27,7 +27,7 @@ app.use('/api/razorpay', razorpayRoutes);
 
 const startServer = async () => {
   try {
-    await connectDB();
+    // await connectDB();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
