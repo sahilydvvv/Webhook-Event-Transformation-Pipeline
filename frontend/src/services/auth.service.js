@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api/auth';
+const API_URL = 'http://localhost:5000/api/auth';
 
 // Create an Axios instance with credentials enabled to handle cookies automatically
 export const authApi = axios.create({
