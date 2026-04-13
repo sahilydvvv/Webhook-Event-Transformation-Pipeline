@@ -14,3 +14,23 @@ export const getAllEvents = async (req, res) => {
         });
     }
 };
+
+
+export const getEventsBySource = async (req, res) => {
+    try {
+        const {source,type} = req.query;
+        const filter = {};
+        if(source) filter.source = source;
+        if(type) filter.type = type;
+        const events = await Webhook.find(filter).sort({ createdAt: -1 });
+        res.status(200).json({
+            count: events.length,
+            events
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error fetching events"
+        });
+    }
+}
