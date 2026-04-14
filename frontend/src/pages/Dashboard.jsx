@@ -1,239 +1,224 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/auth.service';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
-  LogOut, User, Activity, Loader2, Link as LinkIcon, 
-  Settings, Key, Database, Bell, Plug, CheckCircle2,
-  MoreHorizontal
+  Activity, 
+  ArrowUpRight, 
+  ArrowDownRight, 
+  Zap, 
+  ShieldCheck, 
+  Clock,
+  Globe,
+  CreditCard,
+  BarChart3
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
+import { getEvents } from '../services/eventService';
+import { getRules } from '../services/ruleService';
 
-export default function Dashboard() {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await authService.getMe();
-        setUser(data.user);
-      } catch (error) {
-        toast.error('Session expired or unauthorized. Please login again.', { style: { background: '#333', color: '#fff' } });
-        navigate('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-      toast.success('Logged out successfully', { style: { background: '#333', color: '#fff' } });
-      navigate('/login');
-    } catch (error) {
-      toast.error('Failed to logout', { style: { background: '#333', color: '#fff' } });
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen bg-[#0A0A0B] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
-          <p className="text-zinc-500 font-medium text-sm">Authenticating session...</p>
-        </div>
+const StatCard = ({ title, value, icon: Icon, trend, trendValue, color }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="glass-card p-6 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all duration-300"
+  >
+    <div className={`absolute top-0 right-0 w-24 h-24 bg-${color}-500/5 blur-3xl -mr-8 -mt-8 rounded-full group-hover:bg-${color}-500/10 transition-all duration-500`}></div>
+    <div className="flex justify-between items-start mb-4">
+      <div className={`p-3 rounded-xl bg-${color}-500/10 text-${color}-500 group-hover:scale-110 transition-transform`}>
+        <Icon size={24} />
       </div>
-    );
-  }
-
-  return (
-    <div className="flex h-screen bg-[#0A0A0B] text-white font-sans overflow-hidden">
-      
-      {/* Sidebar Navigation */}
-      <aside className="w-64 flex-shrink-0 border-r border-zinc-800/60 bg-[#0A0A0B] flex flex-col hidden md:flex">
-        <div className="h-16 flex items-center px-6 border-b border-zinc-800/60 gap-3">
-          <div className="w-7 h-7 bg-white rounded flex items-center justify-center">
-            <LinkIcon className="text-black w-4 h-4" />
-          </div>
-          <span className="font-semibold tracking-tight">Transformer</span>
+      {trendValue && (
+        <div className={`flex items-center gap-1 text-sm ${trend === 'up' ? 'text-emerald-500' : 'text-rose-500'}`}>
+          {trend === 'up' ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
+          <span>{trendValue}</span>
         </div>
-        
-        <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
-          <p className="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Platform</p>
-          <NavItem icon={<Activity />} label="Dashboard" active />
-          <NavItem icon={<Plug />} label="Webhooks" />
-          <NavItem icon={<Database />} label="Event Logs" />
-          
-          <p className="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mt-6 mb-2">Settings</p>
-          <NavItem icon={<Key />} label="API Keys" />
-          <NavItem icon={<Bell />} label="Notifications" />
-          <NavItem icon={<Settings />} label="Workspace" />
-        </div>
-
-        <div className="p-4 border-t border-zinc-800/60">
-          <div className="flex items-center justify-between p-2 rounded-lg hover:bg-[#1A1A1C] transition-colors cursor-pointer" onClick={handleLogout}>
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center text-xs font-bold shrink-0">
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
-              <div className="flex flex-col truncate">
-                <span className="text-sm font-medium truncate">{user?.name}</span>
-                <span className="text-xs text-zinc-500 truncate">{user?.email}</span>
-              </div>
-            </div>
-            <LogOut className="w-4 h-4 text-zinc-500 shrink-0" />
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#0A0A0B]">
-        {/* Top Header */}
-        <header className="h-16 flex items-center justify-between px-8 border-b border-zinc-800/60 bg-[#0A0A0B] shrink-0">
-          <div className="flex items-center gap-4 text-sm font-medium text-zinc-400">
-            <span className="text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">ramsh / workspace</span>
-            <span>/</span>
-            <span className="text-white">Dashboard</span>
-          </div>
-          <button className="md:hidden p-2 text-zinc-400" onClick={handleLogout}>
-            <LogOut className="w-5 h-5" />
-          </button>
-        </header>
-
-        {/* Dash Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="max-w-6xl mx-auto space-y-8">
-            
-            {/* Title Section */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-white mb-1">Welcome back, {user?.name.split(' ')[0]}</h2>
-                <p className="text-zinc-400 text-sm">Here is a high-level overview of your webhook pipeline infrastructure.</p>
-              </div>
-              <div className="flex gap-3">
-                <button className="px-4 py-2 bg-[#1A1A1C] hover:bg-[#252528] border border-zinc-800 text-sm font-medium rounded-lg transition-colors text-white">
-                  Documentation
-                </button>
-                <button className="px-4 py-2 bg-white hover:bg-zinc-200 text-black text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
-                  <Plug className="w-4 h-4" /> Connect Endpoint
-                </button>
-              </div>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StatCard title="Events Received" value="1,248" change="+12%" period="from last week" />
-              <StatCard title="Transformation Success" value="99.9%" change="+0.1%" period="from last week" isGood />
-              <StatCard title="Active Endpoints" value="4" />
-            </div>
-
-            {/* Content Split */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Activity Log */}
-              <div className="lg:col-span-2 border border-zinc-800/60 rounded-xl bg-[#0A0A0B] overflow-hidden">
-                <div className="px-6 py-4 flex items-center justify-between border-b border-zinc-800/60">
-                  <h3 className="font-semibold text-sm">Recent Events</h3>
-                  <button className="text-xs text-zinc-400 hover:text-white transition-colors">View all</button>
-                </div>
-                <div className="divide-y divide-zinc-800/60">
-                  <EventRow source="GitHub Push" time="2 mins ago" status="Delivered" />
-                  <EventRow source="Razorpay Payment" time="15 mins ago" status="Delivered" />
-                  <EventRow source="GitHub PR Opened" time="1 hr ago" status="Delivered" />
-                  <EventRow source="Stripe Charge Failed" time="3 hrs ago" status="Failed" isError />
-                </div>
-              </div>
-
-              {/* Profile/Config Widget */}
-              <div className="border border-zinc-800/60 rounded-xl bg-[#0A0A0B] p-6 flex flex-col">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center text-lg font-bold shrink-0 shadow-lg shadow-violet-500/20">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{user?.name}</h3>
-                    <p className="text-sm text-zinc-500">{user?.email}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4 flex-1">
-                  <div className="bg-[#121214] border border-zinc-800/60 rounded-lg p-4">
-                    <p className="text-xs text-zinc-500 uppercase font-semibold tracking-wider mb-1">Account ID</p>
-                    <p className="font-mono text-xs text-zinc-300 break-all">{user?._id || user?.id}</p>
-                  </div>
-                  
-                  <div className="bg-[#121214] border border-zinc-800/60 rounded-lg p-4">
-                    <p className="text-xs text-zinc-500 uppercase font-semibold tracking-wider mb-2">Network Status</p>
-                    <div className="flex items-center gap-2 text-sm text-emerald-400 font-medium">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-                      All Systems Operational
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-      </main>
-
+      )}
     </div>
-  );
-}
+    <h3 className="text-muted-foreground text-sm font-medium">{title}</h3>
+    <p className="text-2xl font-bold mt-1 tracking-tight">{value}</p>
+  </motion.div>
+);
 
-// Subcomponents for the Dashboard to keep code clean
+const EventRow = ({ event }) => {
+  const isGithub = event.source?.toLowerCase().includes('github');
+  const isRazorpay = event.source?.toLowerCase().includes('razorpay');
 
-function NavItem({ icon, label, active }) {
-  const Icon = React.cloneElement(icon, { className: 'w-4 h-4' });
   return (
-    <div className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm font-medium ${active ? 'bg-[#1A1A1C] text-white' : 'text-zinc-400 hover:text-white hover:bg-[#121214]'}`}>
-      {Icon}
-      <span>{label}</span>
-      {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>}
-    </div>
-  );
-}
-
-function StatCard({ title, value, change, period, isGood }) {
-  return (
-    <div className="border border-zinc-800/60 rounded-xl bg-[#0A0A0B] p-5 flex flex-col justify-between">
-      <p className="text-zinc-400 text-sm font-medium mb-4">{title}</p>
-      <div className="flex items-end justify-between items-baseline gap-2">
-        <h4 className="text-3xl font-semibold tracking-tight text-white">{value}</h4>
-        {change && (
-          <div className="flex items-center gap-1 text-xs font-medium">
-            <span className={isGood ? 'text-emerald-400' : 'text-zinc-400 text-emerald-400'}>{change}</span>
-            <span className="text-zinc-600 font-normal">{period}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function EventRow({ source, time, status, isError }) {
-  return (
-    <div className="px-6 py-4 flex items-center justify-between hover:bg-[#121214] transition-colors cursor-pointer group">
-      <div className="flex items-center gap-4 border-l-2 border-transparent group-hover:border-zinc-500 pl-2 -ml-[2px] transition-all">
-        <div className={`p-2 rounded-md ${isError ? 'bg-red-500/10 text-red-400' : 'bg-zinc-800 text-zinc-300'}`}>
-          {isError ? <Activity className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+    <div className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-border/50 last:border-0 group">
+      <div className="flex items-center gap-4">
+        <div className={`p-2 rounded-lg transition-all ${isGithub ? 'bg-zinc-800' : isRazorpay ? 'bg-blue-900/40 text-blue-400' : 'bg-primary/20 text-primary'} group-hover:scale-110`}>
+          {isGithub ? <Globe size={18} /> : isRazorpay ? <CreditCard size={18} /> : <Zap size={18} />}
         </div>
         <div>
-          <p className="font-medium text-sm text-zinc-200">{source}</p>
-          <p className="text-xs text-zinc-500">{time}</p>
+          <p className="font-medium text-sm">{event.summary || event.type || 'Webhook Event'}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[10px] uppercase tracking-wider bg-white/5 px-2 py-0.5 rounded text-muted-foreground">{event.source}</span>
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock size={12} />
+              {new Date(event.createdAt).toLocaleTimeString()}
+            </span>
+          </div>
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${isError ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
-          {status}
+      <div className="text-right">
+        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${event.processed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+          {event.processed ? 'PROCESSED' : 'PENDING'}
         </span>
-        <MoreHorizontal className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
       </div>
     </div>
   );
-}
+};
+
+const Dashboard = () => {
+  const [events, setEvents] = useState([]);
+  const [rules, setRules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [eventData, ruleData] = await Promise.all([
+          getEvents(),
+          getRules()
+        ]);
+        
+        const allEvents = Array.isArray(eventData) ? eventData : [];
+        setEvents(allEvents);
+        setRules(Array.isArray(ruleData) ? ruleData : []);
+
+        // Prepare chart data from real events
+        const groups = {};
+        allEvents.forEach(e => {
+          const hour = new Date(e.createdAt).getHours() + ':00';
+          groups[hour] = (groups[hour] || 0) + 1;
+        });
+
+        const sortedChart = Object.keys(groups)
+          .sort((a, b) => parseInt(a) - parseInt(b))
+          .map(hour => ({ name: hour, events: groups[hour] }));
+        
+        // Ensure at least some points if data is sparse
+        setChartData(sortedChart.length > 0 ? sortedChart : [{name: '00:00', events: 0}]);
+
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const totalEvents = events.length;
+  const successRate = totalEvents > 0 
+    ? ((events.filter(e => e.processed).length / totalEvents) * 100).toFixed(1) + '%' 
+    : '0%';
+
+  return (
+    <div className="space-y-8 pb-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Overview</h2>
+          <p className="text-muted-foreground mt-1">Real-time pulse of your data pipeline.</p>
+        </div>
+        <div className="flex items-center gap-3">
+           <div className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+              LIVE
+           </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Total Volume" value={totalEvents} icon={Activity} color="indigo" />
+        <StatCard title="Delivery Rate" value={successRate} icon={ShieldCheck} color="emerald" />
+        <StatCard title="Active Rules" value={rules.length} icon={Zap} color="purple" />
+        <StatCard title="Processed" value={events.filter(e => e.processed).length} icon={Clock} color="amber" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Main Chart */}
+          <div className="glass-card p-6 rounded-2xl h-[350px]">
+             <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold flex items-center gap-2 text-lg">
+                  <BarChart3 size={20} className="text-primary" />
+                  Traffic volume
+                </h3>
+                <span className="text-xs text-muted-foreground">Recent Activity</span>
+             </div>
+             <ResponsiveContainer width="100%" height="85%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
+                  <Tooltip 
+                    contentStyle={{backgroundColor: '#0f0f14', borderRadius: '12px', border: '1px solid #ffffff10'}}
+                    itemStyle={{color: '#7c3aed', fontWeight: 'bold'}}
+                  />
+                  <Area type="monotone" dataKey="events" stroke="#7c3aed" strokeWidth={3} fillOpacity={1} fill="url(#colorEvents)" />
+                </AreaChart>
+             </ResponsiveContainer>
+          </div>
+
+          <div className="glass-card rounded-2xl overflow-hidden">
+            <div className="p-6 border-b border-border/50 flex items-center justify-between">
+              <h3 className="font-bold flex items-center gap-2">
+                <Activity size={18} className="text-primary" />
+                Live Stream
+              </h3>
+              <button className="text-xs text-primary hover:underline font-medium">Auto-sync ON</button>
+            </div>
+            <div className="divide-y divide-border/50">
+              {loading ? (
+                <div className="p-12 text-center text-muted-foreground">Syncing stream...</div>
+              ) : events.length > 0 ? (
+                events.slice(0, 5).map((event, i) => <EventRow key={event._id || i} event={event} />)
+              ) : (
+                <div className="p-12 text-center text-muted-foreground">Waiting for incoming data...</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="glass-card p-6 rounded-2xl">
+            <h3 className="font-bold mb-6 flex items-center gap-2">
+              <ShieldCheck size={18} className="text-emerald-500" />
+              Inbound Health
+            </h3>
+            <div className="space-y-6">
+              {[
+                { name: 'Github Webhooks', status: 'Healthy' },
+                { name: 'Razorpay Webhooks', status: 'Healthy' },
+                { name: 'Manual Simulation', status: 'Active' },
+                { name: 'Database Sink', status: 'Stable' }
+              ].map((service, i) => (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{service.name}</span>
+                  <span className="text-emerald-500 font-bold text-[10px] uppercase">{service.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;

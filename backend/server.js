@@ -8,6 +8,7 @@ import authRoutes from "./routes/user.route.js";
 import webhookRoutes from "./routes/webhook.route.js";
 import razorpayRoutes from "./routes/razorpay.route.js";
 import eventsRoutes from "./routes/events.route.js";
+import ruleRoutes from "./routes/rule.route.js";
 
 const app= express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +26,7 @@ app.use('/api/auth',authRoutes);
 app.use('/api/webhook',webhookRoutes);
 app.use('/api/razorpay', razorpayRoutes);
 app.use('/api/events', eventsRoutes);
+app.use('/api/rules', ruleRoutes);
 
 
 const startServer = async () => {
