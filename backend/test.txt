@@ -1,0 +1,67 @@
+//Payment Captured
+{
+  "entity": "event",
+  "account_id": "acc_test_123",
+  "event": "payment.captured",
+  "contains": ["payment"],
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_real_001",
+        "entity": "payment",
+        "amount": 50000,
+        "currency": "INR",
+        "status": "captured",
+        "order_id": "order_real_001",
+        "method": "card",
+        "email": "sahil@test.com",
+        "contact": "9999999999",
+        "created_at": 1670000000
+      }
+    }
+  },
+  "created_at": 1670000001
+}
+
+//Payment Failed
+
+{
+  "entity": "event",
+  "account_id": "acc_test_123",
+  "event": "payment.failed",
+  "contains": ["payment"],
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_real_002",
+        "entity": "payment",
+        "amount": 75000,
+        "currency": "INR",
+        "status": "failed",
+        "method": "upi",
+        "email": "fail@test.com"
+      }
+    }
+  },
+  "created_at": 1670000002
+}
+
+//Refund
+{
+  "entity": "event",
+  "account_id": "acc_test_123",
+  "event": "refund.processed",
+  "contains": ["refund"],
+  "payload": {
+    "refund": {
+      "entity": {
+        "id": "rf_real_001",
+        "entity": "refund",
+        "amount": 20000,
+        "currency": "INR",
+        "status": "processed"
+      }
+    }
+  },
+  "created_at": 1670000003
+}
