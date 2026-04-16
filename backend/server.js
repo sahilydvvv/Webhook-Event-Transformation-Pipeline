@@ -20,7 +20,7 @@ app.use(cors(
     credentials: true
   }
 ));
-app.use(cookieParser());
+// app.use(cookieParser());
 
 app.use('/api/auth',authRoutes);
 app.use('/api/webhook',webhookRoutes);
