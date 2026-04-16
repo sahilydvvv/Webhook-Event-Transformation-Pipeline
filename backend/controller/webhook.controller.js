@@ -12,7 +12,7 @@ export const webhook_github = async (req, res) => {
         console.log("Transformed GitHub Event:", transformedEvent);
 
         if (!transformedEvent) {
-            console.log("GitHub Webhook received but event was ignored - not a push to main branch");
+            console.log(" Webhook received but event was ignored - not a push to main branch");
             return res.status(200).json({
                 message: "GitHub Webhook received but event was ignored",
                 normalizedEvent
