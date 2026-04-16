@@ -11,7 +11,7 @@ import eventsRoutes from "./routes/events.route.js";
 import ruleRoutes from "./routes/rule.route.js";
 
 const app= express();
-const PORT = process.env.PORT || 5000;
+const PORT =  5000;
 
 app.use(express.json());
 app.use(cors(
